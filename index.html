@@ -1,173 +1,99 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <title>历史百科查询网站</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      padding: 2rem;
-      max-width: 800px;
-      margin: auto;
-    }
-    h1, h2 {
-      text-align: center;
-    }
-    input, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-      margin: 0.5rem 0;
-      width: 100%;
-      max-width: 300px;
-    }
-    #results, #year-results, #keyword-result {
-      margin-top: 1rem;
-    }
-    .event, .keyword-summary {
-      background: #fff;
-      padding: 1rem;
-      border-radius: 10px;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      line-height: 1.5;
-    }
-    a {
-      color: #0066cc;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>每日历史人物与时事新闻</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+  #container { display: flex; justify-content: space-between; }
+  .section { width: 48%; border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  .section img { max-width: 100%; height: auto; border-radius: 5px; margin-bottom: 10px; }
+  .title { font-weight: bold; font-size: 1.2em; margin-bottom: 15px; color: #333; }
+  a { color: #0366d6; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  #person-date { color: #666; font-style: italic; }
+</style>
 </head>
 <body>
 
-  <h1>📜 历史百科查询网站</h1>
+<div id="container">
+  <div class="section" id="history-person">
+    <div class="title">历史人物</div>
+    <img id="person-img" src="" alt="历史人物照片" />
+    <div><strong id="person-name"></strong> (<span id="person-date"></span>)</div>
+    <div><a id="person-link" href="" target="_blank">查看更多</a></div>
+  </div>
 
-  <section>
-    <h2>📅 按日期查询历史事件</h2>
-    <label for="date">选择日期：</label><br />
-    <input type="date" id="date" />
-    <button onclick="queryEvents()">查询当天事件</button>
-    <div id="results"></div>
-  </section>
+  <div class="section" id="current-news">
+    <div class="title">时事新闻</div>
+    <img id="news-img" src="" alt="新闻图片" />
+    <div id="news-summary" style="margin: 10px 0;"></div>
+    <div><a id="news-link" href="" target="_blank">阅读详情</a></div>
+  </div>
+</div>
 
-  <hr />
+<script>
+  // ====== 这里是需要你自己维护/更新的内容 ======
 
-  <section>
-    <h2>📅 按年份查询历史事件</h2>
-    <label for="year">输入年份（如：1949）：</label><br />
-    <input type="number" id="year" min="0" max="2100" />
-    <button onclick="queryYearEvents()">查询该年事件</button>
-    <div id="year-results"></div>
-  </section>
-
-  <hr />
-
-  <section>
-    <h2>🔍 关键词百科搜索</h2>
-    <label for="keyword">输入关键词（如：中日甲午战争）：</label><br />
-    <input type="text" id="keyword" placeholder="请输入关键词" />
-    <button onclick="searchKeyword()">搜索</button>
-    <div id="keyword-result"></div>
-  </section>
-
-  <script>
-    function formatDateToZh(dateStr) {
-      const d = new Date(dateStr);
-      const month = d.getMonth() + 1;
-      const day = d.getDate();
-      return `${month}月${day}日`;
+  const historyPersons = [
+    {
+      name: "诸葛亮",
+      date: "181年 - 234年",
+      img: "https://upload.wikimedia.org/wikipedia/commons/7/7d/Zhuge_Liang.jpg",
+      link: "https://zh.wikipedia.org/wiki/%E8%AB%B8%E8%91%9B%E4%BA%AE"
+    },
+    {
+      name: "秦始皇",
+      date: "259 BC - 210 BC",
+      img: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Qin_Shi_Huang.jpg",
+      link: "https://zh.wikipedia.org/wiki/%E7%A7%A6%E5%A7%8B%E7%9A%87"
     }
+    // 可以继续添加更多历史人物，格式同上
+  ];
 
-    async function queryEvents() {
-      const date = document.getElementById('date').value;
-      if (!date) return alert('请选择一个日期');
-      const zhDate = formatDateToZh(date);
-      const apiUrl = `https://zh.wikipedia.org/api/rest_v1/page/mobile-sections/${zhDate}`;
-
-      document.getElementById('results').innerHTML = '<p>加载中...</p>';
-
-      try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error("获取数据失败");
-        const data = await res.json();
-
-        const sections = data.lead.sections.concat(data.remaining.sections);
-        const historySection = sections.find(s => s.line && s.line.includes("大事记")) || sections[1];
-
-        let html = '';
-        if (historySection) {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(historySection.text, 'text/html');
-          const lis = doc.querySelectorAll('ul > li');
-          lis.forEach(li => {
-            html += `<div class="event">${li.innerHTML}</div>`;
-          });
-        } else {
-          html = '<p>未找到相关历史事件。</p>';
-        }
-        document.getElementById('results').innerHTML = html;
-
-      } catch (err) {
-        console.error(err);
-        document.getElementById('results').innerHTML = '<p>查询失败，请稍后重试。</p>';
-      }
+  const currentNews = [
+    {
+      summary: "2025年6月17日，某地发生重大政治事件。",
+      img: "https://via.placeholder.com/400x200?text=新闻1",
+      link: "https://news.example.com/article1"
+    },
+    {
+      summary: "国际局势紧张，重要会议召开。",
+      img: "https://via.placeholder.com/400x200?text=新闻2",
+      link: "https://news.example.com/article2"
     }
+    // 可以继续添加更多新闻条目，格式同上
+  ];
 
-    async function queryYearEvents() {
-      const year = document.getElementById('year').value.trim();
-      if (!year) return alert('请输入年份');
+  // ====== 以下代码不需要改动 ======
 
-      const apiUrl = `https://zh.wikipedia.org/api/rest_v1/page/mobile-sections/${year}年`;
-      document.getElementById('year-results').innerHTML = '<p>加载中...</p>';
+  function getDateNumber() {
+    const d = new Date();
+    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  }
 
-      try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error('获取失败');
-        const data = await res.json();
-        const sections = data.lead.sections.concat(data.remaining.sections);
-        let html = '';
-        sections.forEach(s => {
-          if (s.text && s.text.includes('<li>')) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(s.text, 'text/html');
-            const lis = doc.querySelectorAll('ul > li');
-            lis.forEach(li => {
-              html += `<div class="event">${li.innerHTML}</div>`;
-            });
-          }
-        });
-        if (!html) html = '<p>未找到相关内容。</p>';
-        document.getElementById('year-results').innerHTML = html;
-      } catch (err) {
-        console.error(err);
-        document.getElementById('year-results').innerHTML = '<p>查询失败，请稍后重试。</p>';
-      }
-    }
+  function showDailyContent() {
+    const dateNum = getDateNumber();
 
-    async function searchKeyword() {
-      const kw = document.getElementById('keyword').value.trim();
-      if (!kw) return alert('请输入关键词');
-      const url = `https://zh.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(kw)}`;
-      document.getElementById('keyword-result').innerHTML = '<p>加载中...</p>';
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('无法找到条目');
-        const data = await res.json();
-        const html = `
-          <div class="keyword-summary">
-            <h3>${data.title}</h3>
-            <p>${data.extract}</p>
-            <a href="${data.content_urls.desktop.page}" target="_blank" rel="noopener noreferrer">阅读全文</a>
-          </div>`;
-        document.getElementById('keyword-result').innerHTML = html;
-      } catch (err) {
-        document.getElementById('keyword-result').innerHTML = '<p>未找到结果。</p>';
-      }
-    }
-  </script>
+    const personIndex = dateNum % historyPersons.length;
+    const newsIndex = dateNum % currentNews.length;
+
+    const person = historyPersons[personIndex];
+    const news = currentNews[newsIndex];
+
+    document.getElementById("person-img").src = person.img;
+    document.getElementById("person-name").textContent = person.name;
+    document.getElementById("person-date").textContent = person.date;
+    document.getElementById("person-link").href = person.link;
+
+    document.getElementById("news-img").src = news.img;
+    document.getElementById("news-summary").textContent = news.summary;
+    document.getElementById("news-link").href = news.link;
+  }
+
+  window.onload = showDailyContent;
+</script>
+
 </body>
 </html>
+
