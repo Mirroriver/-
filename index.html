@@ -140,7 +140,7 @@
 </main>
 
 <script>
-  // === 历史人物数据 ===
+  // 历史人物数据
   const historyPersons = [
     {
       name: "诸葛亮",
@@ -150,7 +150,7 @@
     },
     {
       name: "秦始皇",
-      date: "259 BC - 210 BC",
+      date: "公元前259年 - 公元前210年",
       img: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Qin_Shi_Huang.jpg",
       link: "https://zh.wikipedia.org/wiki/%E7%A7%A6%E5%A7%8B%E7%9A%87"
     },
@@ -162,21 +162,21 @@
     }
   ];
 
-  // === 时事新闻数据，详细简介 ===
+  // 时事新闻数据，详细简介
   const currentNews = [
     {
       summary: `2025年6月17日，某地发生重大政治事件：政府宣布实施新的经济改革计划，旨在促进科技创新和绿色能源的发展，计划包括增加财政投入、调整税收政策以及鼓励企业投资绿色项目。这一改革被认为将对国家未来发展产生深远影响，同时引发部分群体的关注和讨论。`,
       img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Flag_of_China.svg/320px-Flag_of_China.svg.png",
-      link: "https://news.example.com/article1"
+      link: "https://zh.wikipedia.org/wiki/中华人民共和国经济"
     },
     {
       summary: `国际局势紧张，重要会议召开：多个国家代表齐聚联合国总部，讨论当前全球安全形势和气候变化问题。会议重点涉及区域冲突调解、核裁军谈判以及国际合作机制的完善。会议期间，各方表达了不同立场，但整体达成了加强合作的共识。此次会议被视为缓解紧张局势的重要一步。`,
       img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_Nations.svg/320px-Flag_of_the_United_Nations.svg.png",
-      link: "https://news.example.com/article2"
+      link: "https://zh.wikipedia.org/wiki/%E5%90%88%E4%BD%9C%E5%9B%BD"
     }
   ];
 
-  // === 工具函数 ===
+  // --- 本地存储帮助函数 ---
   function getTodayKey(base) {
     const today = new Date().toISOString().slice(0,10); // yyyy-mm-dd
     return base + "_" + today;
@@ -191,7 +191,7 @@
     localStorage.setItem(key, JSON.stringify(arr));
   }
 
-  // 无限无重复随机索引，全部用完后自动重置
+  // 无限不重复随机索引
   function getRandomIndexWithoutRepeat(array, usedIndicesKey) {
     let used = getUsedIndices(usedIndicesKey);
     if (used.length >= array.length) {
@@ -210,6 +210,7 @@
     return idx;
   }
 
+  // 显示随机历史人物和时事新闻
   function showRandomContentNoRepeat() {
     const personKey = getTodayKey("usedPersons");
     const newsKey = getTodayKey("usedNews");
@@ -243,15 +244,9 @@
     }
   }
 
-  window.onload = showRandomContentNoRepeat;
-
-  // 维基百科历史事件查询
+  // 维基百科查询
   function searchWikipedia() {
     const query = document.getElementById("wiki-input").value.trim();
     const resultDiv = document.getElementById("wiki-result");
     if (!query) {
-      resultDiv.innerHTML = "<span style='color:red;'>请输入关键词</span>";
-      return;
-    }
-
-    const url = `https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format
+      resultDiv.inner
