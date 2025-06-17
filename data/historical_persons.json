@@ -1,1 +1,44 @@
 
+{
+  "modern": [
+    {
+      "name": "孙中山",
+      "birth": "1866",
+      "death": "1925",
+      "description": "中国近代民主革命的先行者，中华民国的国父。",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Sun_Yat-sen_2.jpg/220px-Sun_Yat-sen_2.jpg",
+      "link": "https://zh.wikipedia.org/wiki/%E5%AD%99%E4%B8%AD%E5%B1%B1"
+    },
+    {
+      "name": "爱因斯坦",
+      "birth": "1879",
+      "death": "1955",
+      "description": "德国理论物理学家，提出相对论，诺贝尔物理学奖获得者。",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/220px-Albert_Einstein_Head.jpg",
+      "link": "https://zh.wikipedia.org/wiki/%E7%88%B1%E5%9B%A0%E6%96%AF%E5%9D%A6"
+    }
+    // 继续补充剩余78个近代名人...
+  ],
+  "postAncient": [
+    {
+      "name": "孔子",
+      "birth": "公元前551",
+      "death": "公元前479",
+      "description": "春秋末期伟大的思想家、教育家，儒家学派创始人。",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Confucius_Los_Angele_Fair_01.jpg/220px-Confucius_Los_Angele_Fair_01.jpg",
+      "link": "https://zh.wikipedia.org/wiki/%E5%AD%94%E5%AD%90"
+    }
+    // 继续补充9个中古名人...
+  ],
+  "preAncient": [
+    {
+      "name": "亚里士多德",
+      "birth": "公元前384",
+      "death": "公元前322",
+      "description": "古希腊哲学家，柏拉图学生，亚历山大大帝导师。",
+      "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Aristotle_Altemps_Inv8575.jpg/220px-Aristotle_Altemps_Inv8575.jpg",
+      "link": "https://zh.wikipedia.org/wiki/%E4%BA%9A%E9%87%8C%E5%A3%AB%E5%A4%9A%E5%BE%B7"
+    }
+    // 继续补充剩余9个公元前名人...
+  ]
+}
