@@ -2,39 +2,137 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8" />
-<title>每日历史人物与时事新闻</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>多功能查询与随机历史人物新闻</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-  #container { display: flex; justify-content: space-between; }
-  .section { width: 48%; border: 1px solid #ccc; padding: 15px; border-radius: 8px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-  .section img { max-width: 100%; height: auto; border-radius: 5px; margin-bottom: 10px; }
-  .title { font-weight: bold; font-size: 1.2em; margin-bottom: 15px; color: #333; }
-  a { color: #0366d6; text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  #person-date { color: #666; font-style: italic; }
+  body {
+    font-family: "Microsoft Yahei", Arial, sans-serif;
+    margin: 20px;
+    background: #f0f2f5;
+    color: #333;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  #history-person, #current-news {
+    width: 48%;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  #history-person img, #current-news img {
+    max-width: 100%;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    object-fit: contain;
+  }
+  .title {
+    font-weight: bold;
+    font-size: 1.3em;
+    margin-bottom: 10px;
+    color: #1a73e8;
+  }
+  a {
+    color: #1a73e8;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  #person-date {
+    font-style: italic;
+    color: #666;
+  }
+
+  main {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  section.query-section {
+    margin-bottom: 30px;
+  }
+  section.query-section h2 {
+    color: #1a73e8;
+    margin-bottom: 10px;
+  }
+  input[type="text"] {
+    width: 300px;
+    padding: 8px 12px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+  }
+  button {
+    padding: 8px 15px;
+    font-size: 1em;
+    border: none;
+    border-radius: 5px;
+    background-color: #1a73e8;
+    color: white;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #155ab6;
+  }
+  #result {
+    margin-top: 10px;
+    max-width: 900px;
+    line-height: 1.5em;
+  }
+  #result a {
+    color: #1a73e8;
+  }
 </style>
 </head>
 <body>
 
-<div id="container">
-  <div class="section" id="history-person">
+<header>
+  <div id="history-person" aria-label="历史人物">
     <div class="title">历史人物</div>
     <img id="person-img" src="" alt="历史人物照片" />
     <div><strong id="person-name"></strong> (<span id="person-date"></span>)</div>
-    <div><a id="person-link" href="" target="_blank">查看更多</a></div>
+    <div><a id="person-link" href="" target="_blank" rel="noopener noreferrer">查看更多</a></div>
   </div>
 
-  <div class="section" id="current-news">
+  <div id="current-news" aria-label="时事新闻">
     <div class="title">时事新闻</div>
     <img id="news-img" src="" alt="新闻图片" />
     <div id="news-summary" style="margin: 10px 0;"></div>
-    <div><a id="news-link" href="" target="_blank">阅读详情</a></div>
+    <div><a id="news-link" href="" target="_blank" rel="noopener noreferrer">阅读详情</a></div>
   </div>
-</div>
+</header>
+
+<main>
+  <section class="query-section" id="wiki-section">
+    <h2>维基百科历史事件查询</h2>
+    <input type="text" id="wiki-input" placeholder="输入关键词，比如“甲午战争”" />
+    <button onclick="searchWikipedia()">查询</button>
+    <div id="wiki-result"></div>
+  </section>
+
+  <section class="query-section" id="news-section">
+    <h2>新闻查询</h2>
+    <input type="text" id="news-input" placeholder="输入关键词，比如“经济”" />
+    <button onclick="searchNews()">查询</button>
+    <div id="news-result"></div>
+  </section>
+
+  <section class="query-section" id="dict-section">
+    <h2>词典查询</h2>
+    <input type="text" id="dict-input" placeholder="输入词语，比如“和谐”" />
+    <button onclick="searchDict()">查询</button>
+    <div id="dict-result"></div>
+  </section>
+</main>
 
 <script>
-  // ====== 这里是需要你自己维护/更新的内容 ======
-
+  // ==== 随机历史人物和时事新闻数据 ====
   const historyPersons = [
     {
       name: "诸葛亮",
@@ -47,39 +145,35 @@
       date: "259 BC - 210 BC",
       img: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Qin_Shi_Huang.jpg",
       link: "https://zh.wikipedia.org/wiki/%E7%A7%A6%E5%A7%8B%E7%9A%87"
+    },
+    {
+      name: "孙中山",
+      date: "1866年 - 1925年",
+      img: "https://upload.wikimedia.org/wikipedia/commons/1/11/Sun_Yat-sen_1922.jpg",
+      link: "https://zh.wikipedia.org/wiki/%E5%AD%99%E4%B8%AD%E5%B1%B1"
     }
-    // 可以继续添加更多历史人物，格式同上
   ];
 
   const currentNews = [
     {
       summary: "2025年6月17日，某地发生重大政治事件。",
-      img: "https://via.placeholder.com/400x200?text=新闻1",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Flag_of_China.svg/320px-Flag_of_China.svg.png",
       link: "https://news.example.com/article1"
     },
     {
       summary: "国际局势紧张，重要会议召开。",
-      img: "https://via.placeholder.com/400x200?text=新闻2",
+      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_Nations.svg/320px-Flag_of_the_United_Nations.svg.png",
       link: "https://news.example.com/article2"
     }
-    // 可以继续添加更多新闻条目，格式同上
   ];
 
-  // ====== 以下代码不需要改动 ======
-
-  function getDateNumber() {
-    const d = new Date();
-    return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  function randomIndex(array) {
+    return Math.floor(Math.random() * array.length);
   }
 
-  function showDailyContent() {
-    const dateNum = getDateNumber();
-
-    const personIndex = dateNum % historyPersons.length;
-    const newsIndex = dateNum % currentNews.length;
-
-    const person = historyPersons[personIndex];
-    const news = currentNews[newsIndex];
+  function showRandomContent() {
+    const person = historyPersons[randomIndex(historyPersons)];
+    const news = currentNews[randomIndex(currentNews)];
 
     document.getElementById("person-img").src = person.img;
     document.getElementById("person-name").textContent = person.name;
@@ -91,7 +185,69 @@
     document.getElementById("news-link").href = news.link;
   }
 
-  window.onload = showDailyContent;
+  window.onload = showRandomContent;
+
+  // ==== 维基百科历史事件查询 ====
+
+  function searchWikipedia() {
+    const query = document.getElementById("wiki-input").value.trim();
+    const resultDiv = document.getElementById("wiki-result");
+    if (!query) {
+      resultDiv.innerHTML = "<span style='color:red;'>请输入关键词</span>";
+      return;
+    }
+
+    const url = `https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const searchResults = data.query.search;
+        if (searchResults.length === 0) {
+          resultDiv.innerHTML = "无相关结果。";
+          return;
+        }
+        let html = "<ul>";
+        searchResults.forEach(item => {
+          const title = item.title;
+          const snippet = item.snippet.replace(/<\/?[^>]+(>|$)/g, "");
+          const link = `https://zh.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+          html += `<li><a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a><br/><small>${snippet}...</small></li>`;
+        });
+        html += "</ul>";
+        resultDiv.innerHTML = html;
+      })
+      .catch(() => {
+        resultDiv.innerHTML = "<span style='color:red;'>查询失败，请稍后再试。</span>";
+      });
+  }
+
+  // ==== 新闻查询示例 ====
+
+  function searchNews() {
+    const keyword = document.getElementById("news-input").value.trim();
+    const resultDiv = document.getElementById("news-result");
+    if (!keyword) {
+      resultDiv.innerHTML = "<span style='color:red;'>请输入关键词</span>";
+      return;
+    }
+    // 示例，需更换成真实支持CORS的新闻API
+    resultDiv.innerHTML = "新闻查询示例功能，需替换为真实API。";
+  }
+
+  // ==== 词典查询示例 ====
+
+  function searchDict() {
+    const word = document.getElementById("dict-input").value.trim();
+    const resultDiv = document.getElementById("dict-result");
+    if (!word) {
+      resultDiv.innerHTML = "<span style='color:red;'>请输入词语</span>";
+      return;
+    }
+
+    const url = `https://hanyu.baidu.com/s?wd=${encodeURIComponent(word)}`;
+    resultDiv.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">点击查看“${word}”的百度汉语解释</a>`;
+  }
 </script>
 
 </body>
