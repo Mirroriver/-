@@ -1,228 +1,113 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>历史事件与时事政治查询平台</title>
-<style>
-  body {
-    font-family: "Microsoft Yahei", sans-serif;
-    max-width: 1000px;
-    margin: 20px auto;
-    background: #f5f5f5;
-    color: #333;
-  }
-  header {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  #historical-person, #current-news {
-    border: 1px solid #ccc;
-    padding: 12px;
-    width: 48%;
-    box-sizing: border-box;
-    border-radius: 8px;
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    background: #fff;
-    min-height: 140px;
-  }
-  #historical-person img, #current-news img {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
-    border-radius: 6px;
-    background: #eee;
-    flex-shrink: 0;
-  }
-  #historical-person div, #current-news div {
-    flex: 1;
-  }
-  #historical-person h3, #current-news h3 {
-    margin: 0 0 8px 0;
-    font-size: 1.2em;
-    color: #007acc;
-  }
-  #historical-person p, #current-news p {
-    margin: 0 0 10px 0;
-    line-height: 1.4;
-  }
-  #historical-person a, #current-news a {
-    color: #1a0dab;
-    text-decoration: none;
-  }
-  #historical-person a:hover, #current-news a:hover {
-    text-decoration: underline;
-  }
-  h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    color: #222;
-  }
-  #functions {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-  button {
-    margin: 0 8px;
-    padding: 10px 18px;
-    cursor: pointer;
-    border: none;
-    border-radius: 6px;
-    background-color: #007acc;
-    color: white;
-    font-size: 1em;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #005f99;
-  }
-  #results {
-    white-space: pre-wrap;
-    border: 1px solid #ccc;
-    padding: 18px;
-    border-radius: 8px;
-    max-height: 400px;
-    overflow-y: auto;
-    background: white;
-    font-size: 0.95em;
-    line-height: 1.5;
-  }
-  @media (max-width: 700px) {
-    header {
-      flex-direction: column;
-    }
-    #historical-person, #current-news {
-      width: 100%;
-      min-height: auto;
-    }
-    #historical-person img, #current-news img {
-      width: 100px;
-      height: 100px;
-    }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>历史与新闻查询</title>
+  <style>
+    body { font-family: "Microsoft Yahei", sans-serif; margin: 0; padding: 0; background: #f0f0f0;}
+    header, footer { background: #333; color: #fff; padding: 10px 20px; }
+    main { display: flex; padding: 20px; gap: 20px; }
+    section { background: #fff; padding: 20px; border-radius: 6px; flex: 1; overflow-y: auto; max-height: 80vh; }
+    h2 { border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+    img { max-width: 150px; max-height: 150px; margin-right: 10px; vertical-align: middle; border-radius: 4px; }
+    .item { margin-bottom: 12px; display: flex; align-items: flex-start; }
+    .item-info { flex: 1; }
+    .search-box { margin-bottom: 15px; }
+    a { color: #0645ad; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>历史人物与维基新闻查询</h1>
+  </header>
 
-<header>
-  <section id="historical-person" aria-label="每日历史人物">
-    <img id="person-img" alt="历史人物照片" src="" />
-    <div>
-      <h3 id="person-name">加载中...</h3>
-      <p id="person-desc"></p>
-      <a id="person-link" href="#" target="_blank" rel="noopener noreferrer">详细链接</a>
-    </div>
-  </section>
+  <main>
+    <section id="historical-section">
+      <h2>历史人物</h2>
+      <input type="text" id="personSearch" placeholder="搜索历史人物" class="search-box" />
+      <div id="historical-list"></div>
+    </section>
 
-  <section id="current-news" aria-label="每日时事新闻">
-    <img id="news-img" alt="时事新闻图片" src="" />
-    <div>
-      <h3 id="news-title">加载中...</h3>
-      <p id="news-desc"></p>
-      <a id="news-link" href="#" target="_blank" rel="noopener noreferrer">阅读详情</a>
-    </div>
-  </section>
-</header>
+    <section id="news-section">
+      <h2>维基今日新闻</h2>
+      <div id="news-list"></div>
+    </section>
+  </main>
 
-<h1>历史事件查询平台</h1>
+  <footer>
+    <small>数据来源：维基百科 | 由GitHub Actions自动更新</small>
+  </footer>
 
-<div id="functions">
-  <button onclick="queryWikipedia()">查询维基历史事件</button>
-  <button onclick="showRandomPerson()">刷新随机历史人物</button>
-</div>
+  <script>
+    let historicalData = [];
+    let newsData = [];
 
-<div id="results" aria-live="polite" aria-atomic="true">结果将在这里显示...</div>
+    async function loadData() {
+      try {
+        const personsResp = await fetch('data/historical_persons.json');
+        historicalData = await personsResp.json();
 
-<script>
-  let persons = [];
-  let newsList = [];
-  let usedPersons = new Set();
+        const newsResp = await fetch('data/news.json');
+        newsData = await newsResp.json();
 
-  // 加载历史人物数据
-  fetch('data/historical_persons.json')
-    .then(res => res.json())
-    .then(json => {
-      persons = [...json.modern, ...json.postAncient, ...json.preAncient];
-      showRandomPerson();
-    })
-    .catch(() => {
-      document.getElementById('results').textContent = '加载历史人物数据失败。';
-    });
+        displayHistorical(historicalData);
+        displayNews(newsData);
+      } catch (e) {
+        console.error("加载数据失败", e);
+        document.getElementById('historical-list').innerText = '加载历史人物失败';
+        document.getElementById('news-list').innerText = '加载新闻失败';
+      }
+    }
 
-  // 加载时事新闻数据
-  fetch('data/news.json')
-    .then(res => res.json())
-    .then(json => {
-      newsList = json;
-      showRandomNews();
-    })
-    .catch(() => {
-      newsList = [{
-        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/News_icon_1.svg/120px-News_icon_1.svg.png',
-        title: '时事新闻加载失败',
-        desc: '请检查news.json文件是否正确。',
-        link: '#'
-      }];
-      showRandomNews();
-    });
-
-  function showRandomPerson() {
-    if (!persons.length) return;
-    if (usedPersons.size >= persons.length) usedPersons.clear();
-    let idx;
-    do {
-      idx = Math.floor(Math.random() * persons.length);
-    } while (usedPersons.has(idx));
-    usedPersons.add(idx);
-    const p = persons[idx];
-    document.getElementById('person-img').src = p.img || 'https://via.placeholder.com/120x120?text=无图';
-    document.getElementById('person-img').alt = p.name + ' 照片';
-    document.getElementById('person-name').textContent = p.name;
-    document.getElementById('person-desc').textContent = p.description || '无简介';
-    const linkEl = document.getElementById('person-link');
-    linkEl.href = p.link || '#';
-    linkEl.textContent = '详细链接';
-  }
-
-  function showRandomNews() {
-    if (!newsList.length) return;
-    const idx = Math.floor(Math.random() * newsList.length);
-    const n = newsList[idx];
-    document.getElementById('news-img').src = n.img || 'https://via.placeholder.com/120x120?text=无图';
-    document.getElementById('news-img').alt = (n.title || '时事新闻') + ' 图片';
-    document.getElementById('news-title').textContent = n.title || '无标题';
-    document.getElementById('news-desc').textContent = n.desc || '无简介';
-    const linkEl = document.getElementById('news-link');
-    linkEl.href = n.link || '#';
-    linkEl.textContent = '阅读详情';
-  }
-
-  function queryWikipedia() {
-    const keyword = prompt('请输入要查询的历史事件关键词：');
-    if (!keyword) return;
-    const url = `https://zh.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=${encodeURIComponent(keyword)}&origin=*`;
-    document.getElementById('results').textContent = '查询中，请稍候...';
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.query || !data.query.search || data.query.search.length === 0) {
-          document.getElementById('results').textContent = '无相关结果。';
-          return;
-        }
-        const results = data.query.search.map(item => 
-          `标题：${item.title}\n简介：${item.snippet.replace(/<[^>]+>/g, '')}`
-        ).join('\n\n');
-        document.getElementById('results').textContent = results;
-      })
-      .catch(() => {
-        document.getElementById('results').textContent = '查询失败，请稍后重试。';
+    function displayHistorical(data) {
+      const container = document.getElementById('historical-list');
+      container.innerHTML = '';
+      // 合并所有类别数据
+      const allPersons = [].concat(data.modern, data.postAncient, data.preAncient);
+      allPersons.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          ${p.img ? `<img src="${p.img}" alt="${p.name}"/>` : ''}
+          <div class="item-info">
+            <a href="${p.link}" target="_blank"><strong>${p.name}</strong></a><br/>
+            <small>${p.birth || ''} - ${p.death || ''}</small>
+            <p>${p.description}</p>
+          </div>`;
+        container.appendChild(div);
       });
-  }
-</script>
+    }
 
+    function displayNews(data) {
+      const container = document.getElementById('news-list');
+      container.innerHTML = '';
+      data.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          ${n.img ? `<img src="${n.img}" alt="新闻图"/>` : ''}
+          <div class="item-info">
+            <a href="${n.link}" target="_blank"><strong>${n.title}</strong></a>
+            <p>${n.desc}</p>
+          </div>`;
+        container.appendChild(div);
+      });
+    }
+
+    // 搜索功能
+    document.getElementById('personSearch').addEventListener('input', e => {
+      const keyword = e.target.value.trim().toLowerCase();
+      if (!keyword) {
+        displayHistorical(historicalData);
+        return;
+      }
+      const filtered = [].concat(historicalData.modern, historicalData.postAncient, historicalData.preAncient)
+        .filter(p => p.name.toLowerCase().includes(keyword) || p.description.toLowerCase().includes(keyword));
+      displayHistorical({modern: filtered, postAncient: [], preAncient: []});
+    });
+
+    window.onload = loadData;
+  </script>
 </body>
 </html>
