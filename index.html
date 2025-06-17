@@ -1,92 +1,117 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-  <meta charset="UTF-8" />
-  <title>历史名人展示</title>
-  <style>
-    body { font-family: "Microsoft Yahei", sans-serif; max-width: 900px; margin: 20px auto; }
-    h1 { text-align: center; }
-    .section { margin-bottom: 30px; }
-    .person-list { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-    .person {
-      border: 1px solid #ccc; border-radius: 8px; padding: 10px; width: 250px;
-      box-shadow: 1px 1px 5px #ddd;
-      display: flex; flex-direction: column; align-items: center;
-    }
-    .person img {
-      max-width: 100%; height: auto; border-radius: 6px; margin-bottom: 10px;
-      max-height: 250px;
-      object-fit: contain;
-      background: #f9f9f9;
-    }
-    .person a { font-weight: bold; font-size: 18px; color: #3366cc; text-decoration: none; }
-    .person a:hover { text-decoration: underline; }
-    .desc { margin-top: 8px; font-size: 14px; color: #333; height: 100px; overflow: auto; }
-  </style>
+<meta charset="UTF-8" />
+<title>多功能查询与历史名人展示</title>
+<style>
+  body { font-family: "Microsoft Yahei", sans-serif; max-width: 1000px; margin: 20px auto; }
+  header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+  #historical-person, #current-news {
+    border: 1px solid #ccc; padding: 10px; width: 45%; box-sizing: border-box; border-radius: 8px;
+    display: flex; gap: 15px; align-items: center; background: #fafafa;
+  }
+  #historical-person img, #current-news img {
+    width: 120px; height: 120px; object-fit: contain; border-radius: 6px; background: #fff;
+  }
+  #historical-person div, #current-news div {
+    flex: 1;
+  }
+  h1 { text-align: center; margin-bottom: 30px; }
+  button { margin: 5px; padding: 8px 15px; cursor: pointer; }
+  #functions { text-align: center; margin-bottom: 40px; }
+  #results { white-space: pre-wrap; border: 1px solid #ccc; padding: 15px; border-radius: 8px; max-height: 400px; overflow-y: auto; background: #fff; }
+</style>
 </head>
 <body>
-  <h1>历史名人展示</h1>
 
-  <div class="section" id="modern-section">
-    <h2>近代历史名人（80人）</h2>
-    <div class="person-list" id="modern-list"></div>
+<header>
+  <div id="historical-person">
+    <img id="person-img" alt="历史人物" src="" />
+    <div>
+      <h3 id="person-name"></h3>
+      <p id="person-desc"></p>
+      <a id="person-link" href="#" target="_blank">详细链接</a>
+    </div>
   </div>
 
-  <div class="section" id="postAncient-section">
-    <h2>公元后古代历史名人（10人）</h2>
-    <div class="person-list" id="postAncient-list"></div>
+  <div id="current-news">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/News_icon_1.svg/120px-News_icon_1.svg.png" alt="时事" />
+    <div>
+      <h3>今日时事快报</h3>
+      <p>中国和日本正在深化经济合作。</p>
+      <a href="https://news.baidu.com" target="_blank">阅读详情</a>
+    </div>
   </div>
+</header>
 
-  <div class="section" id="preAncient-section">
-    <h2>公元前历史名人（10人）</h2>
-    <div class="person-list" id="preAncient-list"></div>
-  </div>
+<h1>多功能查询平台</h1>
+<div id="functions">
+  <button onclick="queryWikipedia()">查询维基历史事件</button>
+  <button onclick="queryIP()">查询IP信息</button>
+  <button onclick="showRandomPerson()">刷新随机历史人物</button>
+</div>
 
-  <script>
-    function createPersonCard(person) {
-      const div = document.createElement('div');
-      div.className = 'person';
+<div id="results">结果将在这里显示...</div>
 
-      const img = document.createElement('img');
-      img.src = person.img || 'https://via.placeholder.com/250x250?text=No+Image';
-      img.alt = person.name;
-      div.appendChild(img);
+<script>
+  let data = null;
+  let usedPersons = new Set();
 
-      const a = document.createElement('a');
-      a.href = person.link;
-      a.target = '_blank';
-      a.textContent = person.name;
-      div.appendChild(a);
+  // 读取JSON数据
+  fetch('data/historical_persons.json')
+    .then(res => res.json())
+    .then(json => {
+      data = [...json.modern, ...json.postAncient, ...json.preAncient];
+      showRandomPerson();
+    })
+    .catch(() => {
+      document.getElementById('results').textContent = '加载历史人物数据失败。';
+    });
 
-      const desc = document.createElement('div');
-      desc.className = 'desc';
-      desc.textContent = person.description || '无简介';
-      div.appendChild(desc);
+  function showRandomPerson() {
+    if (!data || data.length === 0) return;
+    // 保证不重复显示，重置集合时从头开始
+    if (usedPersons.size >= data.length) usedPersons.clear();
 
-      return div;
-    }
+    let idx;
+    do {
+      idx = Math.floor(Math.random() * data.length);
+    } while (usedPersons.has(idx));
+    usedPersons.add(idx);
 
-    fetch('data/historical_persons.json')
+    const person = data[idx];
+    document.getElementById('person-img').src = person.img || 'https://via.placeholder.com/120x120?text=无图';
+    document.getElementById('person-name').textContent = person.name;
+    document.getElementById('person-desc').textContent = person.description || '无简介';
+    const linkEl = document.getElementById('person-link');
+    linkEl.href = person.link;
+    linkEl.textContent = '详细链接';
+  }
+
+  // 示例维基查询
+  function queryWikipedia() {
+    const keyword = prompt('请输入要查询的历史事件关键词：');
+    if (!keyword) return;
+    const url = `https://zh.wikipedia.org/w/api.php?action=query&format=json&list=search&srsearch=${encodeURIComponent(keyword)}&origin=*`;
+    fetch(url)
       .then(res => res.json())
       .then(data => {
-        const modernList = document.getElementById('modern-list');
-        data.modern.forEach(p => {
-          modernList.appendChild(createPersonCard(p));
-        });
-
-        const postAncientList = document.getElementById('postAncient-list');
-        data.postAncient.forEach(p => {
-          postAncientList.appendChild(createPersonCard(p));
-        });
-
-        const preAncientList = document.getElementById('preAncient-list');
-        data.preAncient.forEach(p => {
-          preAncientList.appendChild(createPersonCard(p));
-        });
+        const results = data.query.search.map(item => `标题：${item.title}\n摘要：${item.snippet.replace(/<[^>]+>/g, '')}\n`).join('\n');
+        document.getElementById('results').textContent = results || '无结果';
       })
-      .catch(e => {
-        console.error('加载数据失败:', e);
+      .catch(() => {
+        document.getElementById('results').textContent = '查询失败';
       });
-  </script>
+  }
+
+  // 示例IP查询
+  function queryIP() {
+    const ip = prompt('请输入IP地址查询示例（这里只返回演示结果）：');
+    if (!ip) return;
+    // 这里演示静态返回，实际可改为调用第三方API
+    const demo = `IP: ${ip}\n国家：中国\n城市：北京\nISP: 演示网络\n`;
+    document.getElementById('results').textContent = demo;
+  }
+</script>
 </body>
 </html>
