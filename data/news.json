@@ -1,1 +1,10 @@
 
+[
+  {
+    "title": "2025年6月17日维基新闻示范",
+    "img": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Wikipedia-logo-v2-en.svg/220px-Wikipedia-logo-v2-en.svg.png",
+    "description": "示范新闻：维基百科相关事件介绍，包含最新数据和链接。",
+    "link": "https://zh.wikipedia.org/wiki/Wikipedia:%E6%96%B0%E9%97%BB"
+  }
+  // 多条新闻可继续追加
+]
