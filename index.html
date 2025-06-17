@@ -1,230 +1,92 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>多功能查询与随机历史人物新闻</title>
-<style>
-  body {
-    font-family: "Microsoft Yahei", Arial, sans-serif;
-    margin: 20px;
-    background: #f0f2f5;
-    color: #333;
-    transition: background 0.3s, color 0.3s;
-  }
-  body.dark-mode {
-    background: #1e1e1e;
-    color: #ccc;
-  }
-  header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  #history-person, #current-news {
-    width: 48%;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    overflow-wrap: break-word;
-  }
-  body.dark-mode #history-person, body.dark-mode #current-news {
-    background: #2c2c2c;
-    box-shadow: 0 2px 6px rgba(255,255,255,0.1);
-  }
-  #history-person img, #current-news img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    background: #fafafa;
-    display: block;
-  }
-  body.dark-mode #history-person img, body.dark-mode #current-news img {
-    background: #3a3a3a;
-  }
-  .title {
-    font-weight: bold;
-    font-size: 1.3em;
-    margin-bottom: 10px;
-    color: #1a73e8;
-  }
-  body.dark-mode .title {
-    color: #4ea1ff;
-  }
-  a {
-    color: #1a73e8;
-    text-decoration: none;
-  }
-  body.dark-mode a {
-    color: #4ea1ff;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-  #person-date {
-    font-style: italic;
-    color: #666;
-  }
-  body.dark-mode #person-date {
-    color: #aaa;
-  }
-  main {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-  body.dark-mode main {
-    background: #2c2c2c;
-    box-shadow: 0 2px 6px rgba(255,255,255,0.1);
-  }
-  section.query-section {
-    margin-bottom: 30px;
-  }
-  section.query-section h2 {
-    color: #1a73e8;
-    margin-bottom: 10px;
-  }
-  body.dark-mode section.query-section h2 {
-    color: #4ea1ff;
-  }
-  input[type="text"] {
-    width: 300px;
-    padding: 8px 12px;
-    font-size: 1em;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-right: 10px;
-  }
-  body.dark-mode input[type="text"] {
-    background: #444;
-    border: 1px solid #666;
-    color: #eee;
-  }
-  button {
-    padding: 8px 15px;
-    font-size: 1em;
-    border: none;
-    border-radius: 5px;
-    background-color: #1a73e8;
-    color: white;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #155ab6;
-  }
-  #wiki-result, #news-result, #dict-result, #history-log {
-    margin-top: 10px;
-    max-width: 900px;
-    line-height: 1.5em;
-  }
-  #wiki-result a, #news-result a, #dict-result a {
-    color: #1a73e8;
-  }
-  body.dark-mode #wiki-result a, body.dark-mode #news-result a, body.dark-mode #dict-result a {
-    color: #4ea1ff;
-  }
-  #news-summary {
-    white-space: pre-wrap;
-  }
-  #history-log {
-    max-height: 200px;
-    overflow-y: auto;
-    background: #f9f9f9;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 0.9em;
-  }
-  body.dark-mode #history-log {
-    background: #3a3a3a;
-  }
-  #theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 6px 12px;
-    background: #1a73e8;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 1000;
-  }
-  #theme-toggle:hover {
-    background: #155ab6;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <title>历史名人展示</title>
+  <style>
+    body { font-family: "Microsoft Yahei", sans-serif; max-width: 900px; margin: 20px auto; }
+    h1 { text-align: center; }
+    .section { margin-bottom: 30px; }
+    .person-list { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+    .person {
+      border: 1px solid #ccc; border-radius: 8px; padding: 10px; width: 250px;
+      box-shadow: 1px 1px 5px #ddd;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .person img {
+      max-width: 100%; height: auto; border-radius: 6px; margin-bottom: 10px;
+      max-height: 250px;
+      object-fit: contain;
+      background: #f9f9f9;
+    }
+    .person a { font-weight: bold; font-size: 18px; color: #3366cc; text-decoration: none; }
+    .person a:hover { text-decoration: underline; }
+    .desc { margin-top: 8px; font-size: 14px; color: #333; height: 100px; overflow: auto; }
+  </style>
 </head>
 <body>
+  <h1>历史名人展示</h1>
 
-<button id="theme-toggle" aria-label="切换主题">切换主题</button>
-
-<header>
-  <div id="history-person" aria-label="历史人物">
-    <div class="title">历史人物</div>
-    <img id="person-img" src="" alt="历史人物照片" />
-    <div><strong id="person-name"></strong> (<span id="person-date"></span>)</div>
-    <div><a id="person-link" href="" target="_blank" rel="noopener noreferrer">查看更多</a></div>
+  <div class="section" id="modern-section">
+    <h2>近代历史名人（80人）</h2>
+    <div class="person-list" id="modern-list"></div>
   </div>
 
-  <div id="current-news" aria-label="时事新闻">
-    <div class="title">时事新闻</div>
-    <img id="news-img" src="" alt="新闻图片" />
-    <div id="news-summary"></div>
-    <div><a id="news-link" href="" target="_blank" rel="noopener noreferrer">阅读详情</a></div>
+  <div class="section" id="postAncient-section">
+    <h2>公元后古代历史名人（10人）</h2>
+    <div class="person-list" id="postAncient-list"></div>
   </div>
-</header>
 
-<main>
-  <section class="query-section" id="wiki-section">
-    <h2>维基百科历史事件查询</h2>
-    <input type="text" id="wiki-input" placeholder="输入关键词，比如‘甲午战争’" />
-    <button onclick="searchWikipedia()">查询</button>
-    <div id="wiki-result"></div>
-  </section>
+  <div class="section" id="preAncient-section">
+    <h2>公元前历史名人（10人）</h2>
+    <div class="person-list" id="preAncient-list"></div>
+  </div>
 
-  <section class="query-section" id="news-section">
-    <h2>新闻查询</h2>
-    <input type="text" id="news-input" placeholder="输入关键词，比如‘经济’" />
-    <button onclick="searchNews()">查询</button>
-    <div id="news-result"></div>
-  </section>
+  <script>
+    function createPersonCard(person) {
+      const div = document.createElement('div');
+      div.className = 'person';
 
-  <section class="query-section" id="dict-section">
-    <h2>词典查询</h2>
-    <input type="text" id="dict-input" placeholder="输入词语，比如‘和谐’" />
-    <button onclick="searchDict()">查询</button>
-    <div id="dict-result"></div>
-  </section>
+      const img = document.createElement('img');
+      img.src = person.img || 'https://via.placeholder.com/250x250?text=No+Image';
+      img.alt = person.name;
+      div.appendChild(img);
 
-  <section class="query-section" id="history-section">
-    <h2>本地查询历史记录</h2>
-    <div id="history-log">无历史记录</div>
-    <button onclick="clearHistory()">清空历史</button>
-  </section>
-</main>
+      const a = document.createElement('a');
+      a.href = person.link;
+      a.target = '_blank';
+      a.textContent = person.name;
+      div.appendChild(a);
 
-<script>
-  const historyPersons = [
-    {
-      name: "诸葛亮",
-      date: "181年 - 234年",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Zhuge_Liang.jpg/300px-Zhuge_Liang.jpg",
-      link: "https://zh.wikipedia.org/wiki/%E8%AB%B8%E8%91%9B%E4%BA%AE",
-      description: `诸葛亮（181年－234年），字孔明，三国时期蜀汉丞相，杰出的政治家、军事家和文学家，辅佐刘备建立蜀汉政权。以智谋著称，有“卧龙”之称。`
-    },
-    {
-      name: "秦始皇",
-      date: "公元前259年 - 公元前210年",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Qin_Shi_Huang.jpg/300px-Qin_Shi_Huang.jpg",
-      link: "https://zh.wikipedia.org/wiki/%E7%A7%A6%E5%A7%8B%E7%9A%87",
-      description: `秦始皇嬴政，是中国历史上第一个完成大一统的皇帝，建立秦朝，统一文字、度量衡和货币，对中国历史产生深远影响。`
-    },
-    {
-      name: "孙中山",
-      date: "1866年 - 1925年",
-      img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Sun_Yat-sen_1922.jpg/300px-Sun_Yat-sen_1922.jpg",
-      link: "https://zh.wikipedia.org/wiki/%E5%AD%99%E4%B8%AD%E5%B1%B1",
-      description: `孙中山，中国民主革命的先行者，中华民
+      const desc = document.createElement('div');
+      desc.className = 'desc';
+      desc.textContent = person.description || '无简介';
+      div.appendChild(desc);
+
+      return div;
+    }
+
+    fetch('data/historical_persons.json')
+      .then(res => res.json())
+      .then(data => {
+        const modernList = document.getElementById('modern-list');
+        data.modern.forEach(p => {
+          modernList.appendChild(createPersonCard(p));
+        });
+
+        const postAncientList = document.getElementById('postAncient-list');
+        data.postAncient.forEach(p => {
+          postAncientList.appendChild(createPersonCard(p));
+        });
+
+        const preAncientList = document.getElementById('preAncient-list');
+        data.preAncient.forEach(p => {
+          preAncientList.appendChild(createPersonCard(p));
+        });
+      })
+      .catch(e => {
+        console.error('加载数据失败:', e);
+      });
+  </script>
+</body>
+</html>
