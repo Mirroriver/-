@@ -24,11 +24,15 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     overflow-wrap: break-word;
   }
+  /* 图片容器固定高度，图片居中显示且等比例缩放 */
   #history-person img, #current-news img {
-    max-width: 100%;
+    width: 100%;
+    height: 300px;        /* 固定高度 */
+    object-fit: contain;  /* 等比例缩放，居中显示，不裁剪 */
     border-radius: 5px;
     margin-bottom: 10px;
-    object-fit: contain;
+    background: #fafafa;
+    display: block;
   }
   .title {
     font-weight: bold;
@@ -187,11 +191,10 @@
     localStorage.setItem(key, JSON.stringify(arr));
   }
 
-  // 这里实现无限无重复随机索引，全部用完后自动重置
+  // 无限无重复随机索引，全部用完后自动重置
   function getRandomIndexWithoutRepeat(array, usedIndicesKey) {
     let used = getUsedIndices(usedIndicesKey);
     if (used.length >= array.length) {
-      // 全部用完，重置
       used = [];
     }
     const available = [];
@@ -240,10 +243,9 @@
     }
   }
 
-  // 页面加载时调用
   window.onload = showRandomContentNoRepeat;
 
-  // === 维基百科历史事件查询 ===
+  // 维基百科历史事件查询
   function searchWikipedia() {
     const query = document.getElementById("wiki-input").value.trim();
     const resultDiv = document.getElementById("wiki-result");
@@ -252,51 +254,4 @@
       return;
     }
 
-    const url = `https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
-
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        const searchResults = data.query.search;
-        if (searchResults.length === 0) {
-          resultDiv.innerHTML = "无相关结果。";
-          return;
-        }
-        let html = "<ul>";
-        searchResults.forEach(item => {
-          const title = item.title;
-          const snippet = item.snippet.replace(/<\/?[^>]+(>|$)/g, "");
-          const link = `https://zh.wikipedia.org/wiki/${encodeURIComponent(title)}`;
-          html += `<li><a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a><br/><small>${snippet}...</small></li>`;
-        });
-        html += "</ul>";
-        resultDiv.innerHTML = html;
-      })
-      .catch(() => {
-        resultDiv.innerHTML = "<span style='color:red;'>查询失败，请稍后再试。</span>";
-      });
-  }
-
-  // === 新闻查询示例 ===
-  function searchNews() {
-    const keyword = document.getElementById("news-input").value.trim();
-    const resultDiv = document.getElementById("news-result");
-    if (!keyword) {
-      resultDiv.innerHTML = "<span style='color:red;'>请输入关键词</span>";
-      return;
-    }
-    // 示例占位，需替换成真实支持CORS的新闻API
-    resultDiv.innerHTML = "新闻查询示例功能，需替换为真实API。";
-  }
-
-  // === 词典查询示例 ===
-  function searchDict() {
-    const word = document.getElementById("dict-input").value.trim();
-    const resultDiv = document.getElementById("dict-result");
-    if (!word) {
-      resultDiv.innerHTML = "<span style='color:red;'>请输入词语</span>";
-      return;
-    }
-
-    const url = `https://hanyu.baidu.com/s?wd=${encodeURIComponent(word)}`;
-    resultDiv.innerHTML = `<a
+    const url = `https://zh.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format
