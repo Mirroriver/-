@@ -1,28 +1,34 @@
-name: Update historical persons data
+name: 自动更新历史人物和时事新闻数据
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 每天0点自动运行
+    - cron: '0 2 * * *'  # 每天UTC 2点 (北京时间10点) 运行
   workflow_dispatch:
 
 jobs:
-  update-data:
+  update_data:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
+      - name: 检出代码
+        uses: actions/checkout@v3
+
+      - name: 设置Python环境
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4
-      - name: Run scraper
-        run: python fetch_persons.py
-      - name: Commit changes
+
+      - name: 安装依赖
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add data/historical_persons.json
-          git commit -m "Auto update historical persons data"
-          git push
-        continue-on-error: true
+          pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: 运行爬虫脚本更新JSON
+        run: python scripts/fetch_data.py
+
+      - name: 提交并推送更改
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/historical_persons.json data/news.json
+          git diff --quiet || (git commit -m "自动更新历史人物和时事新闻数据" && git push)
