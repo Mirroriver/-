@@ -1,113 +1,343 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <title>雨滴网站-2</title>
-  <style>
-    body { font-family: "Microsoft Yahei", sans-serif; margin: 0; padding: 0; background: #f0f0f0;}
-    header, footer { background: #333; color: #fff; padding: 10px 20px; }
-    main { display: flex; padding: 20px; gap: 20px; }
-    section { background: #fff; padding: 20px; border-radius: 6px; flex: 1; overflow-y: auto; max-height: 80vh; }
-    h2 { border-bottom: 2px solid #ddd; padding-bottom: 5px; }
-    img { max-width: 150px; max-height: 150px; margin-right: 10px; vertical-align: middle; border-radius: 4px; }
-    .item { margin-bottom: 12px; display: flex; align-items: flex-start; }
-    .item-info { flex: 1; }
-    .search-box { margin-bottom: 15px; }
-    a { color: #0645ad; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>历史人物与维基新闻查询（支持深浅色切换）</title>
+<style>
+  :root {
+    --bg-light: #f0f0f0;
+    --bg-dark: #181818;
+    --text-light: #222;
+    --text-dark: #eee;
+    --link-light: #0645ad;
+    --link-dark: #77aaff;
+    --section-bg-light: #fff;
+    --section-bg-dark: #242424;
+  }
+  body {
+    margin: 0;
+    font-family: "Microsoft Yahei", sans-serif;
+    background: var(--bg-light);
+    color: var(--text-light);
+    transition: background 0.3s, color 0.3s;
+  }
+  body.dark {
+    background: var(--bg-dark);
+    color: var(--text-dark);
+  }
+  header, footer {
+    background: #333;
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+  }
+  main {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 20px;
+    gap: 20px;
+  }
+  section {
+    background: var(--section-bg-light);
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    flex: 1 1 48%;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s;
+  }
+  body.dark section {
+    background: var(--section-bg-dark);
+  }
+  h2 {
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+  }
+  body.dark h2 {
+    border-color: #555;
+  }
+  .item {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  .item img {
+    max-width: 140px;
+    max-height: 140px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .item-info {
+    flex-grow: 1;
+  }
+  a {
+    font-weight: 700;
+    color: var(--link-light);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  body.dark a {
+    color: var(--link-dark);
+  }
+  small {
+    color: #555;
+  }
+  body.dark small {
+    color: #aaa;
+  }
+  p {
+    margin-top: 6px;
+    line-height: 1.4;
+    color: inherit;
+  }
+  .search-box {
+    margin-bottom: 15px;
+    padding: 6px 8px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    background: white;
+    color: #222;
+  }
+  body.dark .search-box {
+    background: #333;
+    border-color: #666;
+    color: #ddd;
+  }
+  .toggle-btn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #0645ad;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: background 0.3s;
+  }
+  .toggle-btn:hover {
+    background: #033d8b;
+  }
+  @media (max-width: 700px) {
+    main {
+      flex-direction: column;
+    }
+    section {
+      flex: 1 1 100%;
+      max-height: none;
+      height: auto;
+    }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>历史人物与维基新闻查询</h1>
-  </header>
+<button class="toggle-btn" id="toggleTheme">切换深色模式</button>
 
-  <main>
-    <section id="historical-section">
-      <h2>历史人物</h2>
-      <input type="text" id="personSearch" placeholder="搜索历史人物" class="search-box" />
-      <div id="historical-list"></div>
-    </section>
+<header>
+  <h1>历史人物与维基新闻查询</h1>
+</header>
 
-    <section id="news-section">
-      <h2>维基今日新闻</h2>
-      <div id="news-list"></div>
-    </section>
-  </main>
+<main>
+  <section id="historical-section">
+    <h2>历史人物</h2>
+    <input type="text" id="personSearch" class="search-box" placeholder="搜索历史人物或简介..." />
+    <div id="historical-list"></div>
+  </section>
 
-  <footer>
-    <small>数据来源：维基百科 | 由GitHub Actions自动更新</small>
-  </footer>
+  <section id="news-section">
+    <h2>维基今日新闻</h2>
+    <div id="news-list"></div>
+  </section>
 
-  <script>
-    let historicalData = [];
-    let newsData = [];
+  <section id="wiki-event-section" style="flex-basis:100%; margin-top:20px;">
+    <h2>维基历史事件查询</h2>
+    <input type="text" id="eventQuery" class="search-box" placeholder="输入历史事件关键词查询" />
+    <button id="searchEventBtn">查询</button>
+    <div id="eventResults" style="margin-top:15px;"></div>
+  </section>
+</main>
 
-    async function loadData() {
-      try {
-        const personsResp = await fetch('data/historical_persons.json');
-        historicalData = await personsResp.json();
+<footer>
+  <small>数据来源：维基百科 | 由GitHub Actions自动更新 | © 2025</small>
+</footer>
 
-        const newsResp = await fetch('data/news.json');
-        newsData = await newsResp.json();
+<script>
+  // 主题切换
+  const btn = document.getElementById('toggleTheme');
+  btn.onclick = () => {
+    document.body.classList.toggle('dark');
+    btn.textContent = document.body.classList.contains('dark') ? '切换浅色模式' : '切换深色模式';
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  };
+  // 初始化主题
+  if(localStorage.getItem('theme')==='dark') {
+    document.body.classList.add('dark');
+    btn.textContent = '切换浅色模式';
+  }
 
-        displayHistorical(historicalData);
-        displayNews(newsData);
-      } catch (e) {
-        console.error("加载数据失败", e);
-        document.getElementById('historical-list').innerText = '加载历史人物失败';
-        document.getElementById('news-list').innerText = '加载新闻失败';
-      }
+  // 数据加载
+  let historicalData = { modern: [], postAncient: [], preAncient: [] };
+  let newsData = [];
+
+  // Fisher-Yates 洗牌
+  function shuffleArray(arr) {
+    let a = arr.slice();
+    for(let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
     }
+    return a;
+  }
 
-    function displayHistorical(data) {
-      const container = document.getElementById('historical-list');
-      container.innerHTML = '';
-      // 合并所有类别数据
-      const allPersons = [].concat(data.modern, data.postAncient, data.preAncient);
-      allPersons.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          ${p.img ? `<img src="${p.img}" alt="${p.name}"/>` : ''}
-          <div class="item-info">
-            <a href="${p.link}" target="_blank"><strong>${p.name}</strong></a><br/>
-            <small>${p.birth || ''} - ${p.death || ''}</small>
-            <p>${p.description}</p>
-          </div>`;
-        container.appendChild(div);
-      });
+  let historicalIndex = 0;
+  let newsIndex = 0;
+  let historicalQueue = [];
+  let newsQueue = [];
+
+  async function loadData() {
+    try {
+      const personsResp = await fetch('data/historical_persons.json');
+      historicalData = await personsResp.json();
+
+      const newsResp = await fetch('data/news.json');
+      newsData = await newsResp.json();
+
+      historicalQueue = shuffleArray([].concat(historicalData.modern, historicalData.postAncient, historicalData.preAncient));
+      newsQueue = shuffleArray(newsData);
+
+      historicalIndex = 0;
+      newsIndex = 0;
+
+      displayHistoricalBatch();
+      displayNewsBatch();
+    } catch (e) {
+      console.error("加载数据失败", e);
+      document.getElementById('historical-list').innerText = '加载历史人物失败';
+      document.getElementById('news-list').innerText = '加载新闻失败';
     }
+  }
 
-    function displayNews(data) {
-      const container = document.getElementById('news-list');
-      container.innerHTML = '';
-      data.forEach(n => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          ${n.img ? `<img src="${n.img}" alt="新闻图"/>` : ''}
-          <div class="item-info">
-            <a href="${n.link}" target="_blank"><strong>${n.title}</strong></a>
-            <p>${n.desc}</p>
-          </div>`;
-        container.appendChild(div);
-      });
+  function displayHistoricalBatch() {
+    const batchSize = 10;
+    if (historicalIndex + batchSize > historicalQueue.length) {
+      historicalQueue = shuffleArray(historicalQueue);
+      historicalIndex = 0;
     }
+    const batch = historicalQueue.slice(historicalIndex, historicalIndex + batchSize);
+    historicalIndex += batchSize;
 
-    // 搜索功能
-    document.getElementById('personSearch').addEventListener('input', e => {
-      const keyword = e.target.value.trim().toLowerCase();
-      if (!keyword) {
-        displayHistorical(historicalData);
+    const container = document.getElementById('historical-list');
+    container.innerHTML = '';
+    batch.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        ${p.img ? `<img src="${p.img}" alt="${p.name}"/>` : ''}
+        <div class="item-info">
+          <a href="${p.link}" target="_blank" rel="noopener noreferrer">${p.name}</a><br/>
+          <small>${p.birth || ''} - ${p.death || ''}</small>
+          <p>${p.description}</p>
+        </div>`;
+      container.appendChild(div);
+    });
+  }
+
+  function displayNewsBatch() {
+    const batchSize = 5;
+    if (newsIndex + batchSize > newsQueue.length) {
+      newsQueue = shuffleArray(newsQueue);
+      newsIndex = 0;
+    }
+    const batch = newsQueue.slice(newsIndex, newsIndex + batchSize);
+    newsIndex += batchSize;
+
+    const container = document.getElementById('news-list');
+    container.innerHTML = '';
+    batch.forEach(n => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        ${n.img ? `<img src="${n.img}" alt="${n.title}"/>` : ''}
+        <div class="item-info">
+          <a href="${n.link}" target="_blank" rel="noopener noreferrer">${n.title}</a>
+          <p>${n.description}</p>
+        </div>`;
+      container.appendChild(div);
+    });
+  }
+
+  // 搜索历史人物
+  const searchBox = document.getElementById('personSearch');
+  searchBox.oninput = () => {
+    const val = searchBox.value.trim().toLowerCase();
+    const allPersons = [].concat(historicalData.modern, historicalData.postAncient, historicalData.preAncient);
+    const filtered = val ? allPersons.filter(p =>
+      p.name.toLowerCase().includes(val) || p.description.toLowerCase().includes(val)) : allPersons;
+    const container = document.getElementById('historical-list');
+    container.innerHTML = '';
+    filtered.slice(0, 30).forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerHTML = `
+        ${p.img ? `<img src="${p.img}" alt="${p.name}"/>` : ''}
+        <div class="item-info">
+          <a href="${p.link}" target="_blank" rel="noopener noreferrer">${p.name}</a><br/>
+          <small>${p.birth || ''} - ${p.death || ''}</small>
+          <p>${p.description}</p>
+        </div>`;
+      container.appendChild(div);
+    });
+  };
+
+  // 维基历史事件查询
+  document.getElementById('searchEventBtn').onclick = async () => {
+    const q = document.getElementById('eventQuery').value.trim();
+    const resultsContainer = document.getElementById('eventResults');
+    if (!q) {
+      resultsContainer.innerHTML = '<p>请输入关键词。</p>';
+      return;
+    }
+    resultsContainer.innerHTML = '<p>查询中，请稍候...</p>';
+    try {
+      const url = `https://zh.wikipedia.org/w/api.php?action=query&format=json&origin=*&list=search&srsearch=${encodeURIComponent(q)}&utf8=1`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (!data.query.search.length) {
+        resultsContainer.innerHTML = '<p>无相关结果。</p>';
         return;
       }
-      const filtered = [].concat(historicalData.modern, historicalData.postAncient, historicalData.preAncient)
-        .filter(p => p.name.toLowerCase().includes(keyword) || p.description.toLowerCase().includes(keyword));
-      displayHistorical({modern: filtered, postAncient: [], preAncient: []});
-    });
+      let html = '';
+      for (let item of data.query.search) {
+        // 再请求每条条目内容获取摘要和链接
+        const title = item.title;
+        const snippet = item.snippet.replace(/<[^>]+>/g, '');
+        const link = `https://zh.wikipedia.org/wiki/${encodeURIComponent(title)}`;
+        html += `<div style="margin-bottom: 15px;">
+          <a href="${link}" target="_blank" rel="noopener noreferrer">${title}</a>
+          <p>${snippet}</p>
+        </div>`;
+      }
+      resultsContainer.innerHTML = html;
+    } catch(e) {
+      resultsContainer.innerHTML = '<p>查询失败，请稍后重试。</p>';
+    }
+  };
 
-    window.onload = loadData;
-  </script>
+  // 页面加载
+  loadData();
+
+</script>
 </body>
 </html>
