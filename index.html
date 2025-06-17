@@ -22,6 +22,7 @@
     padding: 15px;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    overflow-wrap: break-word;
   }
   #history-person img, #current-news img {
     max-width: 100%;
@@ -80,13 +81,16 @@
   button:hover {
     background-color: #155ab6;
   }
-  #result {
+  #result, #wiki-result, #news-result, #dict-result {
     margin-top: 10px;
     max-width: 900px;
     line-height: 1.5em;
   }
-  #result a {
+  #result a, #wiki-result a, #news-result a, #dict-result a {
     color: #1a73e8;
+  }
+  #news-summary {
+    white-space: pre-wrap;
   }
 </style>
 </head>
@@ -103,7 +107,7 @@
   <div id="current-news" aria-label="时事新闻">
     <div class="title">时事新闻</div>
     <img id="news-img" src="" alt="新闻图片" />
-    <div id="news-summary" style="margin: 10px 0;"></div>
+    <div id="news-summary"></div>
     <div><a id="news-link" href="" target="_blank" rel="noopener noreferrer">阅读详情</a></div>
   </div>
 </header>
@@ -132,7 +136,7 @@
 </main>
 
 <script>
-  // ==== 随机历史人物和时事新闻数据 ====
+  // === 历史人物数据 ===
   const historyPersons = [
     {
       name: "诸葛亮",
@@ -154,41 +158,92 @@
     }
   ];
 
+  // === 时事新闻数据，详细简介 ===
   const currentNews = [
     {
-      summary: "2025年6月17日，某地发生重大政治事件。",
+      summary: `2025年6月17日，某地发生重大政治事件：政府宣布实施新的经济改革计划，旨在促进科技创新和绿色能源的发展，计划包括增加财政投入、调整税收政策以及鼓励企业投资绿色项目。这一改革被认为将对国家未来发展产生深远影响，同时引发部分群体的关注和讨论。`,
       img: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Flag_of_China.svg/320px-Flag_of_China.svg.png",
       link: "https://news.example.com/article1"
     },
     {
-      summary: "国际局势紧张，重要会议召开。",
+      summary: `国际局势紧张，重要会议召开：多个国家代表齐聚联合国总部，讨论当前全球安全形势和气候变化问题。会议重点涉及区域冲突调解、核裁军谈判以及国际合作机制的完善。会议期间，各方表达了不同立场，但整体达成了加强合作的共识。此次会议被视为缓解紧张局势的重要一步。`,
       img: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_Nations.svg/320px-Flag_of_the_United_Nations.svg.png",
       link: "https://news.example.com/article2"
     }
   ];
 
-  function randomIndex(array) {
-    return Math.floor(Math.random() * array.length);
+  // === 工具函数 ===
+  function getTodayKey(base) {
+    const today = new Date().toISOString().slice(0,10); // yyyy-mm-dd
+    return base + "_" + today;
   }
 
-  function showRandomContent() {
-    const person = historyPersons[randomIndex(historyPersons)];
-    const news = currentNews[randomIndex(currentNews)];
-
-    document.getElementById("person-img").src = person.img;
-    document.getElementById("person-name").textContent = person.name;
-    document.getElementById("person-date").textContent = person.date;
-    document.getElementById("person-link").href = person.link;
-
-    document.getElementById("news-img").src = news.img;
-    document.getElementById("news-summary").textContent = news.summary;
-    document.getElementById("news-link").href = news.link;
+  function getUsedIndices(key) {
+    const json = localStorage.getItem(key);
+    return json ? JSON.parse(json) : [];
   }
 
-  window.onload = showRandomContent;
+  function setUsedIndices(key, arr) {
+    localStorage.setItem(key, JSON.stringify(arr));
+  }
 
-  // ==== 维基百科历史事件查询 ====
+  // 这里实现无限无重复随机索引，全部用完后自动重置
+  function getRandomIndexWithoutRepeat(array, usedIndicesKey) {
+    let used = getUsedIndices(usedIndicesKey);
+    if (used.length >= array.length) {
+      // 全部用完，重置
+      used = [];
+    }
+    const available = [];
+    for (let i = 0; i < array.length; i++) {
+      if (!used.includes(i)) {
+        available.push(i);
+      }
+    }
+    if (available.length === 0) return null;
+    const idx = available[Math.floor(Math.random() * available.length)];
+    used.push(idx);
+    setUsedIndices(usedIndicesKey, used);
+    return idx;
+  }
 
+  function showRandomContentNoRepeat() {
+    const personKey = getTodayKey("usedPersons");
+    const newsKey = getTodayKey("usedNews");
+
+    const personIdx = getRandomIndexWithoutRepeat(historyPersons, personKey);
+    const newsIdx = getRandomIndexWithoutRepeat(currentNews, newsKey);
+
+    const person = historyPersons[personIdx];
+    const news = currentNews[newsIdx];
+
+    if (person) {
+      document.getElementById("person-img").src = person.img;
+      document.getElementById("person-name").textContent = person.name;
+      document.getElementById("person-date").textContent = person.date;
+      document.getElementById("person-link").href = person.link;
+    } else {
+      document.getElementById("person-img").src = "";
+      document.getElementById("person-name").textContent = "无更多数据";
+      document.getElementById("person-date").textContent = "";
+      document.getElementById("person-link").href = "#";
+    }
+
+    if (news) {
+      document.getElementById("news-img").src = news.img;
+      document.getElementById("news-summary").textContent = news.summary;
+      document.getElementById("news-link").href = news.link;
+    } else {
+      document.getElementById("news-img").src = "";
+      document.getElementById("news-summary").textContent = "无更多新闻";
+      document.getElementById("news-link").href = "#";
+    }
+  }
+
+  // 页面加载时调用
+  window.onload = showRandomContentNoRepeat;
+
+  // === 维基百科历史事件查询 ===
   function searchWikipedia() {
     const query = document.getElementById("wiki-input").value.trim();
     const resultDiv = document.getElementById("wiki-result");
@@ -222,8 +277,7 @@
       });
   }
 
-  // ==== 新闻查询示例 ====
-
+  // === 新闻查询示例 ===
   function searchNews() {
     const keyword = document.getElementById("news-input").value.trim();
     const resultDiv = document.getElementById("news-result");
@@ -231,12 +285,11 @@
       resultDiv.innerHTML = "<span style='color:red;'>请输入关键词</span>";
       return;
     }
-    // 示例，需更换成真实支持CORS的新闻API
+    // 示例占位，需替换成真实支持CORS的新闻API
     resultDiv.innerHTML = "新闻查询示例功能，需替换为真实API。";
   }
 
-  // ==== 词典查询示例 ====
-
+  // === 词典查询示例 ===
   function searchDict() {
     const word = document.getElementById("dict-input").value.trim();
     const resultDiv = document.getElementById("dict-result");
@@ -246,10 +299,4 @@
     }
 
     const url = `https://hanyu.baidu.com/s?wd=${encodeURIComponent(word)}`;
-    resultDiv.innerHTML = `<a href="${url}" target="_blank" rel="noopener noreferrer">点击查看“${word}”的百度汉语解释</a>`;
-  }
-</script>
-
-</body>
-</html>
-
+    resultDiv.innerHTML = `<a
